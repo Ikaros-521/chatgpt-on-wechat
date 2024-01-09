@@ -164,15 +164,35 @@ class ChatChannel(Channel):
         if context is None or not context.content:
             return
         logger.debug("[WX] ready to handle context: {}".format(context))
+        # # reply的构建步骤
+        # reply = self._generate_reply(context)
+
+        # logger.debug("[WX] ready to decorate reply: {}".format(reply))
+        # # reply的包装步骤
+        # reply = self._decorate_reply(context, reply)
+
+        # # reply的发送步骤
+        # self._send_reply(context, reply)
+
         # reply的构建步骤
-        reply = self._generate_reply(context)
+        reply_list = self._generate_reply(context)
 
-        logger.debug("[WX] ready to decorate reply: {}".format(reply))
-        # reply的包装步骤
-        reply = self._decorate_reply(context, reply)
+        if type(reply_list) == list:
+            for reply in reply_list:
+                logger.debug("[WX] ready to decorate reply: {}".format(reply))
+                # reply的包装步骤
+                reply = self._decorate_reply(context, reply)
 
-        # reply的发送步骤
-        self._send_reply(context, reply)
+                # reply的发送步骤
+                self._send_reply(context, reply)
+        else:
+            reply = reply_list
+            logger.debug("[WX] ready to decorate reply: {}".format(reply))
+            # reply的包装步骤
+            reply = self._decorate_reply(context, reply)
+
+            # reply的发送步骤
+            self._send_reply(context, reply) 
 
     def _generate_reply(self, context: Context, reply: Reply = Reply()) -> Reply:
         e_context = PluginManager().emit_event(
@@ -186,7 +206,14 @@ class ChatChannel(Channel):
             logger.debug("[WX] ready to handle context: type={}, content={}".format(context.type, context.content))
             if context.type == ContextType.TEXT or context.type == ContextType.IMAGE_CREATE:  # 文字和图片消息
                 context["channel"] = e_context["channel"]
-                reply = super().build_reply_content(context.content, context)
+                reply1 = super().build_reply_content(context.content, context)
+
+                # print(f"reply1={reply1}")
+                # print(f"context={context}")
+                
+                reply2 = super().build_text_to_voice(reply1.content)
+                
+                reply = [reply1, reply2]
             elif context.type == ContextType.VOICE:  # 语音消息
                 cmsg = context["msg"]
                 cmsg.prepare()

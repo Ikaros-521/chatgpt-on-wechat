@@ -182,7 +182,14 @@ class Role(Plugin):
             prompt = self.roleplays[sessionid].action(content)
             e_context["context"].type = ContextType.TEXT
             e_context["context"].content = prompt
-            e_context.action = EventAction.BREAK
+
+            # if conf().get('voice_reply_voice'):
+            #     reply = Reply(ReplyType.VOICE, prompt)
+            #     e_context["reply"] = reply
+            
+                # return super()._decorate_reply(prompt, reply) 
+
+            e_context.action = EventAction.BREAK   
 
     def get_help_text(self, verbose=False, **kwargs):
         help_text = "让机器人扮演不同的角色。\n"
